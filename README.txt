@@ -5,16 +5,16 @@ WHAT THIS IS
 ------------
 A self-contained, static web app that demonstrates what an in-house Tower
 Management System (TMS) with digital twins could look like, built directly
-from your Site Master Database (SMDB) export. It is meant as a leadership
+from the limited Site Master Database (SMDB). It is meant as a leadership
 demo: a single page, no backend, no database, no paid services, and no
-build step. It plots real tower sites from your SMDB on a satellite map,
+build step. It plots real tower sites from the SMDB on a satellite map,
 renders a clickable digital twin of each tower's physical assets, and shows
 a network topology view of how the sites relate to one another.
 
 This is a proof-of-concept, not a production system. The goal is to show
 that the visibility and intelligence benefits of a real digital twin
 platform (the kind of thing Affectli / commercial TMS platforms sell) can
-be approximated quickly using your own data, so you can make the case for
+be approximated quickly using our own data, so we can make the case for
 investing in a proper in-house build.
 
 
@@ -24,7 +24,7 @@ index.html        The whole app shell (open this file / host this file)
 styles.css         All visual styling (dark "NOC" theme)
 app.js             Map logic, tab switching, network diagram, search, ticker
 twin-rig.js        Builds the clickable digital twin SVG for each tower
-data.js            Your SMDB data, baked directly into the page as JSON
+data.js            SMDB data, baked directly into the page as JSON
 data/sites.json    Same site data in plain JSON, for reference/editing
 data/network.json  The computed network links (which towers connect to which)
 
@@ -33,12 +33,12 @@ Nothing else is required. There is no server, no API keys, no database.
 
 HOW THE DATA GOT HERE
 -----------------------
-The 11 sites in your "Partial_SMDB_for_Power_Apps_and_AI.xlsx" file were
+The 11 sites in the "Partial_SMDB_for_Power_Apps_and_AI.xlsx" file were
 extracted and cleaned into data.js. Around 70 of the most relevant SMDB
 columns per site were kept — coordinates, structure type, antennas/RRUs,
 power plant (rectifiers, batteries, DG, solar, grid), capacity/loading,
 fiber, tenants, and contacts — so the digital twin and map popups are
-backed by your real data, not placeholders.
+backed by real data, not placeholders.
 
 Because all 11 sites in this extract are geographically close to each
 other, the network topology was built automatically by:
@@ -50,19 +50,10 @@ other, the network topology was built automatically by:
   4. Drawing "backbone" links connecting the hubs to each other (nearest-
      neighbour chain), to represent a realistic aggregation network.
 
-This logic lives in plain Python at the time this was generated. If you
-get a fuller SMDB export later (more sites, or real microwave/fiber link
-data instead of inferred ones), see "UPDATING THE DATA" below to regenerate
-data.js with the real topology instead of the distance-based approximation.
-
-
-HOW TO VIEW IT — FASTEST OPTION (no GitHub needed)
-----------------------------------------------------
-1. Unzip/copy this whole "site" folder onto your computer.
-2. Double-click index.html.
-That's it. It opens in your default browser and works fully offline for
-everything except the satellite map tiles and the two web fonts, which load
-from the internet the first time you view it (see "OFFLINE NOTES" below).
+This logic lives in plain Python. When we perform this on the SMDB export 
+later (more sites, or real microwave/fiber link data instead of inferred ones),
+see "UPDATING THE DATA" below to regenerate data.js with the real topology instead
+of the distance-based approximation.
 
 
 HOW TO DEPLOY ON GITHUB PAGES (free hosting, shareable link)
@@ -154,30 +145,26 @@ Bottom ticker
     monitoring data behind it.
 
 
-UPDATING THE DATA (when you get a fuller SMDB export)
+UPDATING THE DATA (for the full SMDB export)
 ----------------------------------------------------------
 The entire dataset lives in two places that need to stay in sync:
   - data.js (what the live page actually reads)
   - data/sites.json and data/network.json (the same data, human-readable)
 
 If you're comfortable with Python, the cleanest way to refresh this is:
-  1. Re-export/clean your SMDB into the same column structure as the
+  1. Re-export/clean the SMDB into the same column structure as the
      original "Partial_SMDB_for_Power_Apps_and_AI.xlsx" (Site Code,
      Latitude, Longitude, Region, etc. — same headers as before).
   2. Re-run the same extraction + clustering logic that produced
      data/sites.json and data/network.json (group sites by proximity,
      pick hubs, generate access/backbone links — or, better, replace the
-     clustering step entirely with your actual microwave/fiber link
-     records if you have them, which will be far more accurate than
+     clustering step entirely with the actual microwave/fiber link
+     records if we have them, which will be far more accurate than
      distance-based guessing).
   3. Paste the resulting JSON into data.js, replacing the
      window.SMDB_SITES and window.SMDB_NETWORK blocks.
 No other file needs to change — app.js and twin-rig.js read whatever is in
 those two variables, however many sites or links there are.
-
-If you don't write code, the simplest path is to come back to whichever
-AI assistant helped build this, share the new SMDB export, and ask for an
-updated data.js — the rest of the app does not need to be touched.
 
 
 CUSTOMISING THE LOOK
@@ -196,13 +183,9 @@ The app needs an internet connection for:
     (CARTO) — these are free, no API key required, suitable for an
     internal demo
   - Two Google Fonts (Space Grotesk, IBM Plex Mono)
-Everything else (your site data, the digital twin rig, the network
+Everything else (site data, the digital twin rig, the network
 diagram, search, and the ticker) runs entirely client-side with zero
-external calls. If your organisation blocks any of the above domains on
-the corporate network, open the page from a connection that allows them
-(or swap in your organisation's preferred internal tile server / font
-hosting — ask whoever maintains this for you to point styles.css and
-index.html at internal equivalents).
+external calls.
 
 
 KNOWN LIMITATIONS (BY DESIGN, FOR AN MVP)
@@ -215,8 +198,8 @@ KNOWN LIMITATIONS (BY DESIGN, FOR AN MVP)
   Treat the topology view as "what a real link map could look like," not
   as the actual physical network today.
 - There's no live telemetry — all "live" data is the static snapshot from
-  the SMDB export at the time this was generated. A production TMS would
-  connect this same UI to a real RMS/NMS feed for live alarms and KPIs.
+  the SMDB export at the time this was created. A production TMS would
+  connect this same UI to a real RMS feed for live alarms and KPIs.
 - No authentication or multi-tenant access control. Treat this build as an
   internal demo artifact, not as something to expose with sensitive data
   on a public URL without first checking with your security/compliance
